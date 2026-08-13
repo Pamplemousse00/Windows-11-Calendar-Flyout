@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>Win10CalendarFlyout</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <!-- Framework-dependent for normal development: avoids requiring the C++ MSVC toolset. -->
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <SelfContained>false</SelfContained>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>0.40.0</Version>
+    <AssemblyVersion>0.40.0.0</AssemblyVersion>
+    <FileVersion>0.40.0.0</FileVersion>
+    <InformationalVersion>0.40.0</InformationalVersion>
+    <ApplicationIcon>Assets\calendar.ico</ApplicationIcon>
+    <!-- Off by default. The private publish script can opt in to embedding a
+         Desktop-app OAuth JSON into the assembly for a portable single EXE. -->
+    <IncludeGoogleOAuthCredentials Condition="'$(IncludeGoogleOAuthCredentials)' == ''">false</IncludeGoogleOAuthCredentials>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.3.1" />
+    <PackageReference Include="Google.Apis.Calendar.v3" Version="1.75.0.4206" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.75.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\calendar.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\calendar-tray.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\calendar-tray-*.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="client_secret.example.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(IncludeGoogleOAuthCredentials)' == 'true' and Exists('$(GoogleOAuthCredentialsPath)')">
+    <EmbeddedResource Include="$(GoogleOAuthCredentialsPath)"
+                      LogicalName="Win10CalendarFlyout.EmbeddedGoogleOAuthCredentials" />
+  </ItemGroup>
+
+  <Target Name="ValidateEmbeddedGoogleOAuthCredentials"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(IncludeGoogleOAuthCredentials)' == 'true'">
+    <Error Condition="'$(GoogleOAuthCredentialsPath)' == ''"
+           Text="IncludeGoogleOAuthCredentials=true requires GoogleOAuthCredentialsPath." />
+    <Error Condition="'$(GoogleOAuthCredentialsPath)' != '' and !Exists('$(GoogleOAuthCredentialsPath)')"
+           Text="Google OAuth credentials file was not found at $(GoogleOAuthCredentialsPath)." />
+  </Target>
+
+</Project>
